@@ -1,0 +1,38 @@
+git filter-repo --analyze
+這會產生報告在.git/filter-repo/analysis
+
+# Delete old branch before 2020
+git for-each-ref --sort='-committerdate:iso8601' --format=' %(committerdate:iso8601)%09%(refname)' refs/heads|egrep '^ 2018|^ 2019'|grep -v 'refs/heads/master'|awk '{print $NF}'|sed 's|refs/heads/||g'|xargs git branch -D
+#git reflog expire --expire=now --all
+git reflog expire --expire-unreachable=now --all
+git fsck --unreachable
+git gc --prune=now --aggressive
+git count-objects -v
+
+# re-check
+git for-each-ref --sort='-committerdate:iso8601' --format=' %(committerdate:iso8601)%09%(refname)' refs/heads
+git for-each-ref --format='%(committerdate:short),%(authorname),%(refname:short)' --sort=committerdate refs/heads/ | column -t -s ','
+git for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:red)%(objectname:short)%(color:reset);%(color:yellow)%(refname:short)%(color:reset);(%(color:green)%(committerdate:relative)%(color:reset));%(authorname);%(contents:subject)' | column -t -s ';'
+git branch --no-merged
+git fsck
+
+---
+
+others:
+
+cd <git repo>
+du -ah | grep -E '[0-9|.]*G\t'
+git for-each-ref --format='delete %(refname)' refs/original | git update-ref --stdin
+
+example: git update-ref -d refs/tags/v1.13.0
+
+git filter-branch --force --index-filter \
+  'git rm --cached --ignore-unmatch Fun88/Library/FunpodiumSDK.framework/FunpodiumSDK' \
+  --prune-empty --tag-name-filter cat -- --all
+
+# To see the 10 biggest files, run this from the root directory:
+git verify-pack -v .git/objects/pack/pack-b3ce499526fc9a1de36377dfb2b64b1353791b43.idx \
+| sort -k 3 -n \
+| tail -10
+
+
