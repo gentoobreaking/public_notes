@@ -1,0 +1,13 @@
+git filter-repo --analyze
+這會產生報告在.git/filter-repo/analysis
+
+# Delete old branch before 2020
+git for-each-ref --sort='-committerdate:iso8601' --format=' %(committerdate:iso8601)%09%(refname)' refs/heads|egrep '^ 2018|^ 2019'|grep -v 'refs/heads/master'|awk '{print $NF}'|sed 's|refs/heads/||g'|xargs git branch -D
+git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+
+# re-check
+git for-each-ref --sort='-committerdate:iso8601' --format=' %(committerdate:iso8601)%09%(refname)' refs/heads
+git for-each-ref --format='%(committerdate:short),%(authorname),%(refname:short)' --sort=committerdate refs/heads/ | column -t -s ','
+git for-each-ref --sort=committerdate refs/heads/ --format='%(HEAD) %(color:red)%(objectname:short)%(color:reset);%(color:yellow)%(refname:short)%(color:reset);(%(color:green)%(committerdate:relative)%(color:reset));%(authorname);%(contents:subject)' | column -t -s ';'
+git branch --no-merged
